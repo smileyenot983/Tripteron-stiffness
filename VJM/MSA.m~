@@ -1,0 +1,165 @@
+% elastic joint + passive joint + flexible link + passive joint +flexible
+% link + passive joint
+
+
+% leg x
+% matrix for first joint which is elastic
+K_1 = ones(6);
+
+% joint_1 is elastic
+lambda_r_1 = [0 1 0 0 0 0;
+            0 0 1 0 0 0;
+            0 0 0 1 0 0;
+            0 0 0 0 1 0;
+            0 0 0 0 0 1];
+       
+
+lambda_e = [1 0 0 0 0 0];
+       
+% rigid base
+rigid_base = [zeros(6),eye(6)];
+
+rigid_base_W = [zeros(6)];
+rigid_base_t = [eye(6)];
+
+% this looks ok
+       
+elastic_joint_1_W = [zeros(5,6),zeros(5,6);
+                     eye(6),     eye(6);
+                     lambda_e, zeros(1,6)];
+               
+k_1 = 1e-6;
+elastic_joint_1_t = [lambda_r_1,-lambda_r_1;
+                     zeros(6),     zeros(6);
+                     k_1*lambda_e, -k_1*lambda_e];
+
+
+lambda_r_x= [1 0 0 0 0 0;
+              0 1 0 0 0 0;
+              0 0 1 0 0 0;
+              0 0 0 0 1 0;
+              0 0 0 0 0 1];
+       
+          
+
+lambda_p_x = [0 0 0 1 0 0];
+
+% joint_2 is passive
+              
+passive_joint_2_W = [zeros(5,6),zeros(5,6);
+                     lambda_r_x,lambda_r_x;
+                     lambda_p_x,zeros(1,6);
+                     zeros(1,6),lambda_p_x];
+                 
+passive_joint_2_t = [lambda_r_x,-lambda_r_x;
+                     zeros(5,6),zeros(5,6);
+                     zeros(1,6),zeros(1,6);
+                     zeros(1,6),zeros(1,6)];
+
+% joint_3 is passive
+
+              
+passive_joint_3_W = [zeros(5,6),zeros(5,6);
+                     lambda_r_x,lambda_r_x;
+                     lambda_p_x,zeros(1,6);
+                     zeros(1,6),lambda_p_x];
+               
+passive_joint_3_t = [lambda_r_x,-lambda_r_x;
+                     zeros(5,6),zeros(5,6);
+                     zeros(1,6),zeros(1,6);
+                     zeros(1,6),zeros(1,6)];
+                 
+% joint_4 is passive
+
+               
+passive_joint_4_W = [zeros(5,6),zeros(5,6);
+                     lambda_r_x,lambda_r_x;
+                     lambda_p_x,zeros(1,6);
+                     zeros(1,6),lambda_p_x];
+
+passive_joint_4_t = [lambda_r_x,-lambda_r_x;
+                     zeros(5,6),zeros(5,6);
+                     zeros(1,6),zeros(1,6);
+                     zeros(1,6),zeros(1,6)];
+                 
+
+% link_1 is elastic
+E = 70e9; %Young's modulus
+G = 25.5e9; %shear modulus
+d = 50e-3;
+
+%for cylinder
+S = pi*d^2/4;
+Iy = pi*d^4/64;
+Iz = pi*d^4/64;
+l_1 = 0.3;
+l_2 = 0.3
+
+K_1 = k_cylinder(E, G, d, l_1, S, Iy, Iz);
+K_2 = k_cylinder(E, G, d, l_2, S, Iy, Iz);
+
+
+
+% link_1 is elastic
+elastic_link_1_W = [-eye(12)];
+elastic_link_1_t = [K_1,K_1;
+                    K_1,K_1];               
+
+% link_2 is elastic
+        
+elastic_link_2_W = [-eye(12)];              
+elastic_link_2_t = [K_2,K_2;
+                    K_2,K_2];               
+
+       
+% rigid platform
+% let's say that vector d6_e(that describes link 2 geometry) = [0.2,50e-3,50e-3]
+d6 = [0.2,  50e-3, 50e-3]
+D6 = [0,   -d6(3), d6(2);
+      d6(3) 0 ]
+D6 = [eye(3),eye(3)';
+      zeros(3),eye(3)];
+
+              
+rigid_platform_W = [zeros(6,12);
+                    eye(6),D6'];
+                
+rigid_platform_t = [D6,-eye(6);
+                    zeros(6,12)];
+
+%% here comes the aggregation
+
+
+
+%% now i should separate this big matrix into A,B,C,D
+          
+Aggregated = zeros(96,96);
+
+% here the part with W
+% Aggregated part for multiplying with W
+Aggregated(1:6,1:6) = rigid_base_W;
+Aggregated(7:18,1:12) = elastic_joint_1_W;
+Aggregated(19:30,7:18) = passive_joint_2_W;
+Aggregated(31:42,13:24) = elastic_link_1_W;
+Aggregated(43:54,19:30) = passive_joint_3_W;
+Aggregated(55:66,25:36) = elastic_link_2_W;
+Aggregated(67:78,31:42) = passive_joint_4_W;
+Aggregated(79:90,37:48) = rigid_platform_W;
+%  Aggregated part for multiplying with delta t
+Aggregated(1:6,49:54) = rigid_base_t;
+Aggregated(7:18,49:60) = elastic_joint_1_t;
+Aggregated(19:30,55:66) = passive_joint_2_t;
+Aggregated(31:42,61:72) = elastic_link_1_t;
+Aggregated(43:54,67:78) = passive_joint_3_t;
+Aggregated(55:66,73:84) = elastic_link_2_t;
+Aggregated(67:78,79:90) = passive_joint_4_t;
+Aggregated(79:90,85:96) = rigid_platform_t;
+
+Aggregated(91:96,43:48) = eye(6);
+
+
+
+
+
+        
+               
