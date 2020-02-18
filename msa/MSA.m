@@ -2,9 +2,9 @@
 % link + passive joint
 
 % woking area
-x = 200:5:300;
-y = 200:5:300;
-z = 200:5:300;
+x = 200:10:300;
+y = 200:10:300;
+z = 200:10:300;
 
 % applied forces
 F = [100,100,100,0,0,0];
@@ -38,7 +38,7 @@ for i=1:length(x)
 end
 
 %% here is only plotting part 
-[x,y,z] = meshgrid(1:21,1:21,1:21);
+[x,y,z] = meshgrid(1:11,1:11,1:11);
 
 figure
-scatter3(x(:),y(:),z(:),50,graph(:));
+scatter3(x(:),y(:),z(:),500,graph(:),'filled');

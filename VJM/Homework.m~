@@ -81,11 +81,11 @@ for i=1:length(x)
     end
 end
 %% here is only plotting part 
-[x,y,z] = meshgrid(1:11,1:11,1:11);
+[x,y,z] = meshgrid(1:21,1:21,1:21);
 
 figure
 % graph_f = graph*1000;
-scatter3(x(:),y(:),z(:),500,graph(:),'filled');
+scatter3(x(:),y(:),z(:),50,graph(:));
 
 
 
